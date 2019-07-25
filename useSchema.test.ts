@@ -17,6 +17,7 @@ describe('useSchema', () => {
         {
           pointer: ['lastName'],
           errorType: 'missing',
+          ruleName: null,
         },
       ])
     })
@@ -55,18 +56,57 @@ describe('useSchema', () => {
         {
           pointer: ['billingAddress', 'firstName'],
           errorType: 'missing',
+          ruleName: null,
         },
         {
           pointer: ['billingAddress', 'country'],
           errorType: 'invalid',
+          ruleName: null,
         },
         {
           pointer: ['billingAddress', 'location', 'lon'],
           errorType: 'missing',
+          ruleName: null,
         },
         {
           pointer: ['billingAddress', 'location', 'server', 'name'],
           errorType: 'missing',
+          ruleName: null,
+        },
+      ])
+    })
+  })
+
+  describe('schema with named rules', () => {
+    const result = useSchema(
+      {
+        password: (value) => ({
+          minLength: value.length > 5,
+          capitalLetters: /[A-Z]{2}/.test(value),
+          oneNumber: /[0-9]{1,}/.test(value),
+        }),
+      },
+      {
+        password: 'foo',
+      },
+    )
+
+    it('should return error', () => {
+      expect(result).toHaveProperty('errors', [
+        {
+          pointer: ['password'],
+          errorType: 'invalid',
+          ruleName: 'minLength',
+        },
+        {
+          pointer: ['password'],
+          errorType: 'invalid',
+          ruleName: 'capitalLetters',
+        },
+        {
+          pointer: ['password'],
+          errorType: 'invalid',
+          ruleName: 'oneNumber',
         },
       ])
     })
