@@ -1,3 +1,14 @@
+<br />
+
+<p align="center">
+  <img src="./logo.svg" alt="Reach schema logo" width="200" />
+</p>
+
+<br />
+
+<h1 align="center">Reach Schema</h1>
+<p align="center">Functional schema-driven JavaScript object validation.</p>
+
 ## Motivation
 
 Look up any Object validation library in JavaScript. You are going to find a class-bloated rigid abstraction that handles complexity by introducing even more complexity.
