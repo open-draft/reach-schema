@@ -1,16 +1,27 @@
 {
+  "name": "reach-schema",
+  "version": "0.1.0",
+  "esnext": "src/index.ts",
+  "main": "lib/cjs.js",
+  "module": "lib/esm.js",
+  "umd:main": "lib/umd.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "clean": "rimraf ./ib",
+    "build": "rollup -c rollup.config.js"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.5.5",
     "@types/jest": "^24.0.15",
     "jest": "^24.8.0",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.17.0",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.22.0",
     "ts-jest": "^24.0.2",
     "typescript": "^3.5.3"
-  },
-  "name": "form-schema-validation",
-  "version": "0.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "scripts": {
-    "test": "jest"
   }
 }

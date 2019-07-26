@@ -1,7 +1,7 @@
 import useSchema from './useSchema'
 
 describe('useSchema', () => {
-  describe('Shallow schema', () => {
+  describe('shallow schema', () => {
     const result = useSchema(
       {
         firstName: (value) => value === 'john',
@@ -23,7 +23,7 @@ describe('useSchema', () => {
     })
   })
 
-  describe('Nested schema', () => {
+  describe('nested schema', () => {
     const result = useSchema(
       {
         id: (value) => typeof value === 'number',

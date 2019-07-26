@@ -1,0 +1,5 @@
+.rpt2_*
+jest.*
+babel.*
+tsconfig.*
+.prettierrc
