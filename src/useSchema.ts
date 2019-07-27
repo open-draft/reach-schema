@@ -10,13 +10,14 @@ interface Resolver {
 
 type ResolversGroup = Record<string, Resolver>
 
-enum ErrorType {
+export enum ErrorType {
   missing = 'missing',
   invalid = 'invalid',
 }
 
-interface ValidationError {
+export interface ValidationError {
   pointer: Pointer
+  value: any
   errorType: ErrorType
   ruleName: string
 }
@@ -53,6 +54,7 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
 
     const resolverOutput = resolver(value, currentPointer)
 
+    // If resolver returns an Object, treat it as named rules map.
     if (typeof resolverOutput === 'object') {
       const namedErrors = Object.keys(resolverOutput)
         .filter((ruleName) => !resolverOutput[ruleName])
@@ -64,6 +66,7 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
       return errors.concat(namedErrors)
     }
 
+    // Otherwise resolver is expected to return a boolean.
     return resolverOutput
       ? errors
       : errors.concat(createValidationError(currentPointer, value))
@@ -79,6 +82,7 @@ function createValidationError(
 
   return {
     pointer,
+    value,
     errorType,
     ruleName,
   }
