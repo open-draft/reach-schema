@@ -3,3 +3,5 @@ jest.*
 babel.*
 tsconfig.*
 .prettierrc
+internals
+src
