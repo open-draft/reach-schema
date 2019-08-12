@@ -82,11 +82,13 @@ useSchema(
 [
   {
     "pointer": ["lastName"],
-    "status": "missing"
+    "status": "missing",
+    "value": undefined
   },
   {
     "pointer": ["age"],
-    "status": "invalid"
+    "status": "invalid",
+    "value": 16
   }
 ]
 ```
@@ -116,7 +118,8 @@ useSchema(
 [
   {
     "pointer": ["billingData", "country"],
-    "status": "invalid"
+    "status": "invalid",
+    "value": "US"
   }
 ]
 ```
@@ -147,11 +150,13 @@ useSchema(
   {
     "pointer": ["password"],
     "status": "invalid",
+    "value": "DeMo",
     "rule": "minLength"
   },
   {
     "pointer": ["password"],
     "status": "invalid",
+    "value": "DeMo",
     "rule": "oneNumber"
   }
 ]
@@ -212,7 +217,9 @@ useSchema(
 [
   {
     "pointer": ["billingData", "address"],
-    "status": "invalid"
+    "status": "invalid",
+    "value": "Invalid address",
+    "rule": undefined
   }
 ]
 ```
