@@ -91,7 +91,7 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
 
 function createValidationError(
   pointer: Pointer,
-  value: any,
+  value: any = null,
   rule: string = null,
 ): ValidationError {
   const status = !!value ? ErrorStatus.invalid : ErrorStatus.missing

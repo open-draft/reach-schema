@@ -83,12 +83,14 @@ useSchema(
   {
     "pointer": ["lastName"],
     "status": "missing",
-    "value": undefined
+    "value": null,
+    "rule": null
   },
   {
     "pointer": ["age"],
     "status": "invalid",
-    "value": 16
+    "value": 16,
+    "rule": null
   }
 ]
 ```
@@ -119,7 +121,8 @@ useSchema(
   {
     "pointer": ["billingData", "country"],
     "status": "invalid",
-    "value": "US"
+    "value": "US",
+    "rule": null
   }
 ]
 ```
@@ -219,7 +222,7 @@ useSchema(
     "pointer": ["billingData", "address"],
     "status": "invalid",
     "value": "Invalid address",
-    "rule": undefined
+    "rule": null
   }
 ]
 ```

@@ -29,7 +29,7 @@ describe('useSchema', () => {
         expect(result).toHaveProperty('errors', [
           {
             pointer: ['firstName'],
-            value: undefined,
+            value: null,
             status: 'missing',
             rule: null,
           },
@@ -157,7 +157,7 @@ describe('useSchema', () => {
         expect(result).toHaveProperty('errors', [
           {
             pointer: ['billingDetails', 'country'],
-            value: undefined,
+            value: null,
             status: 'missing',
             rule: null,
           },
@@ -174,7 +174,7 @@ describe('useSchema', () => {
         expect(result).toHaveProperty('errors', [
           {
             pointer: ['billingDetails', 'country'],
-            value: undefined,
+            value: null,
             status: 'missing',
             rule: null,
           },
@@ -282,6 +282,7 @@ describe('useSchema', () => {
           {
             pointer: ['billingDetails', 'country'],
             status: 'missing',
+            value: null,
             rule: null,
           },
         ])
