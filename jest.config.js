@@ -1,5 +1,6 @@
 module.exports = {
+  roots: ['src'],
   transform: {
-    "^.+\\.tsx?$": "ts-jest"
-  }
-};
+    '^.+\\.tsx?$': 'ts-jest',
+  },
+}
