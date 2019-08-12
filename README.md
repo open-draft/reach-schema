@@ -55,11 +55,11 @@ useSchema(
 [
   {
     "pointer": ["lastName"],
-    "errorType": "missing"
+    "status": "missing"
   },
   {
     "pointer": ["age"],
-    "errorType": "invalid"
+    "status": "invalid"
   }
 ]
 ```
@@ -87,7 +87,7 @@ useSchema(
 [
   {
     "pointer": ["billingData", "country"],
-    "errorType": "invalid"
+    "status": "invalid"
   }
 ]
 ```
@@ -115,12 +115,12 @@ useSchema(
 [
   {
     "pointer": ["password"],
-    "errorType": "invalid",
+    "status": "invalid",
     "ruleName": "minLength"
   },
   {
     "pointer": ["password"],
-    "errorType": "invalid",
+    "status": "invalid",
     "ruleName": "oneNumber"
   }
 ]

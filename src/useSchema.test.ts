@@ -30,7 +30,7 @@ describe('useSchema', () => {
           {
             pointer: ['firstName'],
             value: undefined,
-            errorType: 'missing',
+            status: 'missing',
             ruleName: null,
           },
         ])
@@ -47,7 +47,7 @@ describe('useSchema', () => {
           {
             pointer: ['firstName'],
             value: 'martin',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: null,
           },
         ])
@@ -84,13 +84,13 @@ describe('useSchema', () => {
           {
             pointer: ['password'],
             value: 'long value',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: 'capitalLetter',
           },
           {
             pointer: ['password'],
             value: 'long value',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: 'oneNumber',
           },
         ])
@@ -107,19 +107,19 @@ describe('useSchema', () => {
           {
             pointer: ['password'],
             value: 'wrong',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: 'minLength',
           },
           {
             pointer: ['password'],
             value: 'wrong',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: 'capitalLetter',
           },
           {
             pointer: ['password'],
             value: 'wrong',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: 'oneNumber',
           },
         ])
@@ -158,7 +158,7 @@ describe('useSchema', () => {
           {
             pointer: ['billingDetails', 'country'],
             value: undefined,
-            errorType: 'missing',
+            status: 'missing',
             ruleName: null,
           },
         ])
@@ -175,7 +175,7 @@ describe('useSchema', () => {
           {
             pointer: ['billingDetails', 'country'],
             value: undefined,
-            errorType: 'missing',
+            status: 'missing',
             ruleName: null,
           },
         ])
@@ -194,7 +194,7 @@ describe('useSchema', () => {
           {
             pointer: ['billingDetails', 'country'],
             value: 'it',
-            errorType: 'invalid',
+            status: 'invalid',
             ruleName: null,
           },
         ])

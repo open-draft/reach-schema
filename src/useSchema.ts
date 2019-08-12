@@ -10,7 +10,7 @@ interface Resolver {
 
 type ResolversGroup = Record<string, Resolver>
 
-export enum ErrorType {
+export enum ErrorStatus {
   missing = 'missing',
   invalid = 'invalid',
 }
@@ -18,7 +18,7 @@ export enum ErrorType {
 export interface ValidationError {
   pointer: Pointer
   value: any
-  errorType: ErrorType
+  status: ErrorStatus
   ruleName: string
 }
 
@@ -78,12 +78,12 @@ function createValidationError(
   value: any,
   ruleName: string = null,
 ): ValidationError {
-  const errorType = !!value ? ErrorType.invalid : ErrorType.missing
+  const status = !!value ? ErrorStatus.invalid : ErrorStatus.missing
 
   return {
     pointer,
     value,
-    errorType,
+    status,
     ruleName,
   }
 }
