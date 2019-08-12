@@ -1,6 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "lib": ["esnext", "dom"]
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
   }
 }
