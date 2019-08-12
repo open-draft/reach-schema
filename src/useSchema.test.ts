@@ -1,4 +1,4 @@
-import useSchema from './useSchema'
+import useSchema, { optional } from './useSchema'
 
 const withSchema = (schema) => (data) => {
   return useSchema(schema, data)
@@ -195,6 +195,112 @@ describe('useSchema', () => {
             pointer: ['billingDetails', 'country'],
             value: 'it',
             status: 'invalid',
+            rule: null,
+          },
+        ])
+      })
+    })
+  })
+
+  describe('given schema with an optional key', () => {
+    const withData = withSchema({
+      firstName: optional((value) => value.length > 1),
+    })
+
+    describe('given an optional key is missing', () => {
+      const result = withData({})
+
+      it('should return no errors', () => {
+        expect(result).toHaveProperty('errors', [])
+      })
+    })
+
+    describe('given optional key resolves', () => {
+      const result = withData({
+        firstName: 'John',
+      })
+
+      it('should return no errors', () => {
+        expect(result).toHaveProperty('errors', [])
+      })
+    })
+
+    describe('given optional key rejects', () => {
+      const result = withData({
+        firstName: 'J',
+      })
+
+      it('should return an error for the optional key', () => {
+        expect(result).toHaveProperty('errors', [
+          {
+            pointer: ['firstName'],
+            status: 'invalid',
+            value: 'J',
+            rule: null,
+          },
+        ])
+      })
+    })
+  })
+
+  describe('given schema with an optional key that includes required keys', () => {
+    const withData = withSchema({
+      billingDetails: optional({
+        country: (value) => ['uk', 'us'].includes(value),
+      }),
+    })
+
+    describe('given optional key is missing', () => {
+      const result = withData({})
+
+      it('should return no errors', () => {
+        expect(result).toHaveProperty('errors', [])
+      })
+    })
+
+    describe('given optional key resolves', () => {
+      const result = withData({
+        billingDetails: {
+          country: 'uk',
+        },
+      })
+
+      it('should return no errors', () => {
+        expect(result).toHaveProperty('errors', [])
+      })
+    })
+
+    describe('given optional key is present, but its required child is missing', () => {
+      const result = withData({
+        billingDetails: {
+          firstName: 'John',
+        },
+      })
+
+      it('should return error saying required child is missing', () => {
+        expect(result).toHaveProperty('errors', [
+          {
+            pointer: ['billingDetails', 'country'],
+            status: 'missing',
+            rule: null,
+          },
+        ])
+      })
+    })
+
+    describe('given optional key and its required child are present, but invalid', () => {
+      const result = withData({
+        billingDetails: {
+          country: 'es',
+        },
+      })
+
+      it('should return error saying required child is invalid', () => {
+        expect(result).toHaveProperty('errors', [
+          {
+            pointer: ['billingDetails', 'country'],
+            status: 'invalid',
+            value: 'es',
             rule: null,
           },
         ])

@@ -24,10 +24,32 @@ All these criteria can be summarized as: _validation should be functional_. Func
 
 ## Validation schema
 
-Object validation happens based on the given schema. A validation schema is an Object where each key represents a _required key_ in the data Object. Key value may be one of the following:
+Object validation happens based on the given schema. A validation schema is an Object where each key represents a _required property_ in the data Object. Key value may be one of the following:
 
 1. Resolver function that returns a validity of a data value.
 1. Nested schema Object.
+
+Applying a schema returns the list of validation errors.
+
+## Errors
+
+Each validation error is of the following shape:
+
+```ts
+interface Error {
+  // Field that doesn't match a schema may be in
+  // one of the two possible stats:
+  // - missing. Expected, but not present in the data.
+  // - invalid. Present in both, but not matching the resolver.
+  status: 'missing' | 'invalid',
+
+  // Pointer to the related value.
+  pointer: string[],
+
+  // Rule name, in case of rejecting named resolver.
+  rule?: string
+}
+```
 
 ## API
 
@@ -38,6 +60,8 @@ Object validation happens based on the given schema. A validation schema is an O
 Each property in a schema corresponds to such property in the data Object. Each schema value is a _resolver_ function that accepts an actual data value and returns a `Boolean` verdict.
 
 ```js
+import { useSchema } from 'reach-schema'
+
 useSchema(
   {
     firstName: (value) => value === 'john',
@@ -69,6 +93,8 @@ useSchema(
 If a schema key equals an Object literal, that nested Object is expected in the data. This allows to validate deeply nested structures.
 
 ```js
+import { useSchema } from 'reach-schema'
+
 useSchema(
   {
     billingData: {
@@ -94,9 +120,11 @@ useSchema(
 
 #### Multiple criteria
 
-A resolver function may also return a `Record<string, boolean>` that describes multiple validation rules applied to a single property. The value must satisfy all the rules to be valid.
+A resolver function may also return a `Record<string, boolean>` that describes multiple validation rules applied to a single property. The value must satisfy all the rules to be valid. Each resolver corresponding to a validation criteria is called _named resolver_.
 
 ```js
+import { useSchema } from 'reach-schema'
+
 useSchema(
   {
     password: (value) => ({
@@ -135,14 +163,16 @@ Validation logic is decoupled from error messages for a number of reasons:
 
 ## Recipes
 
-### Key existence
+### Property existence
 
-To check that a key exists in the data Object provide it in the validation schema and make its resolver return `true`.
+To check that a property exists in the data Object provide it in the validation schema and make its resolver always return `true`.
 
 ```js
+import { useSchema } from 'reach-schema'
+
 useSchema(
   {
-    // The key "email" is required in the data Object,
+    // The property "email" is required in the data Object,
     // but is always valid, no matter the value.
     email: () => true,
   },
@@ -151,3 +181,37 @@ useSchema(
   },
 )
 ```
+
+### Optional properties
+
+Optional, or _week_ validation, is the one applied only when the mentioned property is present in the actual data. This marks such property as optional, but still applies a provided structure or resolver(s) when the property is present.
+
+```js
+import { useSchema, optional } from 'reach-schema'
+
+useSchema(
+  {
+    firstName: optional((value) => value.length > 1),
+    billingData: optional({
+      address: (value) => value.includes('st.'),
+      firstName: optional((value) => value.length > 1)
+    })
+  },
+  {
+    billingData: {
+      address: 'Invalid address'
+    }
+  }
+)
+```
+
+```json
+[
+  {
+    "pointer": ["billingData", "address"],
+    "status": "invalid"
+  }
+]
+```
+
+> Note that `firstName` and `billingAddress.firstName` are missing in the actual data, but that produces no errors, because both properties are optional.
