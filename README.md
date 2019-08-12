@@ -116,12 +116,12 @@ useSchema(
   {
     "pointer": ["password"],
     "status": "invalid",
-    "ruleName": "minLength"
+    "rule": "minLength"
   },
   {
     "pointer": ["password"],
     "status": "invalid",
-    "ruleName": "oneNumber"
+    "rule": "oneNumber"
   }
 ]
 ```

@@ -19,7 +19,7 @@ export interface ValidationError {
   pointer: Pointer
   value: any
   status: ErrorStatus
-  ruleName: string
+  rule: string
 }
 
 /**
@@ -57,10 +57,10 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
     // If resolver returns an Object, treat it as named rules map.
     if (typeof resolverOutput === 'object') {
       const namedErrors = Object.keys(resolverOutput)
-        .filter((ruleName) => !resolverOutput[ruleName])
-        .reduce((acc, ruleName) => {
+        .filter((rule) => !resolverOutput[rule])
+        .reduce((acc, rule) => {
           return acc.concat(
-            createValidationError(currentPointer, value, ruleName),
+            createValidationError(currentPointer, value, rule),
           )
         }, [])
       return errors.concat(namedErrors)
@@ -76,7 +76,7 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
 function createValidationError(
   pointer: Pointer,
   value: any,
-  ruleName: string = null,
+  rule: string = null,
 ): ValidationError {
   const status = !!value ? ErrorStatus.invalid : ErrorStatus.missing
 
@@ -84,7 +84,7 @@ function createValidationError(
     pointer,
     value,
     status,
-    ruleName,
+    rule,
   }
 }
 
