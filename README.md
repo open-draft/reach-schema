@@ -41,13 +41,16 @@ interface Error {
   // one of the two possible stats:
   // - missing. Expected, but not present in the data.
   // - invalid. Present in both, but not matching the resolver.
-  status: 'missing' | 'invalid',
+  status: 'missing' | 'invalid'
 
   // Pointer to the related value.
-  pointer: string[],
+  pointer: string[]
+
+  // The actual value of the validated property
+  value: any
 
   // Rule name, in case of rejecting named resolver.
-  rule?: string
+  rule: string | null
 }
 ```
 
@@ -194,14 +197,14 @@ useSchema(
     firstName: optional((value) => value.length > 1),
     billingData: optional({
       address: (value) => value.includes('st.'),
-      firstName: optional((value) => value.length > 1)
-    })
+      firstName: optional((value) => value.length > 1),
+    }),
   },
   {
     billingData: {
-      address: 'Invalid address'
-    }
-  }
+      address: 'Invalid address',
+    },
+  },
 )
 ```
 
