@@ -5,57 +5,82 @@ const withSchema = (schema) => (data) => {
 }
 
 describe('useSchema', () => {
-  describe('using one-line resolver', () => {
+  describe('given one-line resolver', () => {
     const withData = withSchema({
       firstName: (value) => value === 'john',
     })
 
-    describe('given a matching key', () => {
+    describe('and actual data matches', () => {
       const result = withData({
         firstName: 'john',
       })
 
-      it('should return no errors', () => {
-        expect(result).toHaveProperty('errors', [])
+      it('should not return errors', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(0)
       })
     })
 
-    describe('given a key is missing', () => {
+    describe('and a key is missing in the actual data', () => {
       const result = withData({
         lastName: 'locke',
       })
 
-      it('should return a missing error', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['firstName'],
-            value: null,
-            status: 'missing',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        it('should have a pointer to the property', () => {
+          expect(result.errors[0]).toHaveProperty('pointer', ['firstName'])
+        })
+
+        it('should not have a value', () => {
+          expect(result.errors[0]).not.toHaveProperty('value')
+        })
+
+        it('should have "missing" status', () => {
+          expect(result.errors[0]).toHaveProperty('status', 'missing')
+        })
+
+        it('should not have a rule', () => {
+          expect(result.errors[0]).not.toHaveProperty('rule')
+        })
       })
     })
 
-    describe('given a non-matching key', () => {
+    describe('and actual data rejects', () => {
       const result = withData({
         firstName: 'martin',
       })
 
-      it('should return an invalid error', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['firstName'],
-            value: 'martin',
-            status: 'invalid',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        it('should have a pointer to the property', () => {
+          expect(result.errors[0]).toHaveProperty('pointer', ['firstName'])
+        })
+
+        it('should have a value of the property', () => {
+          expect(result.errors[0]).toHaveProperty('value', 'martin')
+        })
+
+        it('should have "invalid" status', () => {
+          expect(result.errors[0]).toHaveProperty('status', 'invalid')
+        })
+
+        it('should not have a rule', () => {
+          expect(result.errors[0]).not.toHaveProperty('rule')
+        })
       })
     })
   })
 
-  describe('given a resolver with multiple rules', () => {
+  describe('given a resolver with 3 named rules', () => {
     const withData = withSchema({
       password: (value) => ({
         minLength: value.length > 5,
@@ -64,323 +89,358 @@ describe('useSchema', () => {
       }),
     })
 
-    describe('given a key matches all rules', () => {
+    describe('and actual data matches all rules', () => {
       const result = withData({
         password: 'PassWord1',
       })
 
-      it('should return no errors', () => {
-        expect(result).toHaveProperty('errors', [])
+      it('should not return errors', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(0)
       })
     })
 
-    describe('given a key rejects several rules', () => {
+    describe('and actual data rejects 2 rules', () => {
       const result = withData({
         password: 'long value',
       })
 
       it('should return error for each rejected rule', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['password'],
-            value: 'long value',
-            status: 'invalid',
-            rule: 'capitalLetter',
-          },
-          {
-            pointer: ['password'],
-            value: 'long value',
-            status: 'invalid',
-            rule: 'oneNumber',
-          },
-        ])
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(2)
+      })
+
+      describe('each error', () => {
+        it('should have a pointer to the property', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('pointer', ['password'])
+          })
+        })
+
+        it('should have "invalid" status', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('status', 'invalid')
+          })
+        })
+
+        it('should have a value of the property', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('value', 'long value')
+          })
+        })
+
+        it('should have a rejected rule name', () => {
+          result.errors.forEach((error) => {
+            expect(error.rule).toMatch(/capitalLetter|oneNumber/)
+          })
+        })
       })
     })
 
-    describe('given a key rejects all rules', () => {
+    describe('and actual data rejects all rules', () => {
       const result = withData({
         password: 'wrong',
       })
 
-      it('should return errors for all rules', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['password'],
-            value: 'wrong',
-            status: 'invalid',
-            rule: 'minLength',
-          },
-          {
-            pointer: ['password'],
-            value: 'wrong',
-            status: 'invalid',
-            rule: 'capitalLetter',
-          },
-          {
-            pointer: ['password'],
-            value: 'wrong',
-            status: 'invalid',
-            rule: 'oneNumber',
-          },
-        ])
+      it('should return error for all rejected rules', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(3)
+      })
+
+      describe('each error', () => {
+        it('should have a pointer to the property', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('pointer', ['password'])
+          })
+        })
+
+        it('should have "invalid" status', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('status', 'invalid')
+          })
+        })
+
+        it('should have a value of the property', () => {
+          result.errors.forEach((error) => {
+            expect(error).toHaveProperty('value', 'wrong')
+          })
+        })
+
+        it('should include rejected rule name', () => {
+          result.errors.forEach((error) => {
+            expect(error.rule).toMatch(/minLength|capitalLetter|oneNumber/)
+          })
+        })
       })
     })
   })
 
-  describe('given schema with nested keys', () => {
+  describe('given schema with nested properties', () => {
     const withData = withSchema({
       billingDetails: {
         country: (value) => ['uk', 'us'].includes(value),
       },
     })
 
-    describe('given a key matches', () => {
+    describe('and actual data matches', () => {
       const result = withData({
         billingDetails: {
           country: 'us',
         },
       })
 
-      it('should return no errors', () => {
-        expect(result).toHaveProperty('errors', [])
+      it('should not return errors', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(0)
       })
     })
 
-    describe('given a key is missing', () => {
+    describe('and a property is missing in the actual data', () => {
       const result = withData({
         billingDetails: {
           city: 'London',
         },
       })
 
-      it('should return a missing error', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['billingDetails', 'country'],
-            value: null,
-            status: 'missing',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        const [error] = result.errors
+
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['billingDetails', 'country'])
+        })
+
+        it('should have "missing" status', () => {
+          expect(error).toHaveProperty('status', 'missing')
+        })
+
+        it('should not have a value', () => {
+          expect(error).not.toHaveProperty('value')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
+        })
       })
     })
 
-    describe('given a parent key is missing', () => {
+    describe('and a parent property is missing in the actual data', () => {
       const result = withData({
         firstName: 'john',
       })
 
-      it('should return a parent missing error', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['billingDetails', 'country'],
-            value: null,
-            status: 'missing',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        const [error] = result.errors
+
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['billingDetails', 'country'])
+        })
+
+        it('should have "missing" status', () => {
+          expect(error).toHaveProperty('status', 'missing')
+        })
+
+        it('should not have a value', () => {
+          expect(error).not.toHaveProperty('value')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
+        })
       })
     })
 
-    describe('given a key is invalid', () => {
+    describe('and actual data is invalid', () => {
       const result = withData({
         billingDetails: {
           country: 'it',
         },
       })
 
-      it('should return an invalid key error', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['billingDetails', 'country'],
-            value: 'it',
-            status: 'invalid',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        const [error] = result.errors
+
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['billingDetails', 'country'])
+        })
+
+        it('should have "invalid" status', () => {
+          expect(error).toHaveProperty('status', 'invalid')
+        })
+
+        it('should have a value of the property', () => {
+          expect(error).toHaveProperty('value', 'it')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
+        })
       })
     })
   })
 
-  describe('given schema with an optional key', () => {
+  describe('given schema with an optional property', () => {
     const withData = withSchema({
       firstName: optional((value) => value.length > 1),
     })
 
-    describe('given an optional key is missing', () => {
+    describe('and an optional property is missing', () => {
       const result = withData({})
 
-      it('should return no errors', () => {
-        expect(result).toHaveProperty('errors', [])
+      it('should not return errors', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(0)
       })
     })
 
-    describe('given optional key resolves', () => {
+    describe('and optional property resolves', () => {
       const result = withData({
         firstName: 'John',
       })
 
-      it('should return no errors', () => {
-        expect(result).toHaveProperty('errors', [])
+      it('should not return errors', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(0)
       })
     })
 
-    describe('given optional key rejects', () => {
+    describe('and optional property rejects', () => {
       const result = withData({
         firstName: 'J',
       })
 
-      it('should return an error for the optional key', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['firstName'],
-            status: 'invalid',
-            value: 'J',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        const [error] = result.errors
+
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['firstName'])
+        })
+
+        it('should have "invalid" status', () => {
+          expect(error).toHaveProperty('status', 'invalid')
+        })
+
+        it('should have a value of the property', () => {
+          expect(error).toHaveProperty('value', 'J')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
+        })
       })
     })
   })
 
-  describe('given schema with an optional key that includes required keys', () => {
+  describe('given schema with an optional property that includes required keys', () => {
     const withData = withSchema({
       billingDetails: optional({
         country: (value) => ['uk', 'us'].includes(value),
       }),
     })
 
-    describe('given optional key is missing', () => {
+    describe('and optional property is missing', () => {
       const result = withData({})
 
-      it('should return no errors', () => {
+      it('should not return errors', () => {
         expect(result).toHaveProperty('errors', [])
       })
     })
 
-    describe('given optional key resolves', () => {
+    describe('and optional property resolves', () => {
       const result = withData({
         billingDetails: {
           country: 'uk',
         },
       })
 
-      it('should return no errors', () => {
+      it('should not return errors', () => {
         expect(result).toHaveProperty('errors', [])
       })
     })
 
-    describe('given optional key is present, but its required child is missing', () => {
+    describe('and optional property is present, but its required child is missing', () => {
       const result = withData({
         billingDetails: {
           firstName: 'John',
         },
       })
 
-      it('should return error saying required child is missing', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['billingDetails', 'country'],
-            status: 'missing',
-            value: null,
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
+      })
+
+      describe('the returned error', () => {
+        const [error] = result.errors
+
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['billingDetails', 'country'])
+        })
+
+        it('should have "missing" status', () => {
+          expect(error).toHaveProperty('status', 'missing')
+        })
+
+        it('should not have a value', () => {
+          expect(error).not.toHaveProperty('value')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
+        })
       })
     })
 
-    describe('given optional key and its required child are present, but invalid', () => {
+    describe('and optional property pointer is present, but invalid', () => {
       const result = withData({
         billingDetails: {
           country: 'es',
         },
       })
 
-      it('should return error saying required child is invalid', () => {
-        expect(result).toHaveProperty('errors', [
-          {
-            pointer: ['billingDetails', 'country'],
-            status: 'invalid',
-            value: 'es',
-            rule: null,
-          },
-        ])
+      it('should return one error', () => {
+        expect(result).toHaveProperty('errors')
+        expect(result.errors).toHaveLength(1)
       })
-    })
-  })
 
-  /**
-   * Input validation
-   */
-  describe('given invalid schema', () => {
-    const invalidSchemas = [2, 'schema', [], null, undefined]
+      describe('the returned error', () => {
+        const [error] = result.errors
 
-    invalidSchemas.forEach((schema) => {
-      const schemaType = Object.prototype.toString.call(schema)
+        it('should have a pointer to the property', () => {
+          expect(error).toHaveProperty('pointer', ['billingDetails', 'country'])
+        })
 
-      describe(`given ${schemaType} as schema`, () => {
-        const validate = () => useSchema(schema as any, {})
+        it('should have "invalid" status', () => {
+          expect(error).toHaveProperty('status', 'invalid')
+        })
 
-        it('should throw error about invalid schema value', () => {
-          expect(validate).toThrow(
-            `Invalid schema: expected schema to be an Object, but got ${schemaType}.`,
-          )
+        it('should have a value of the property', () => {
+          expect(error).toHaveProperty('value', 'es')
+        })
+
+        it('should not have a rule', () => {
+          expect(error).not.toHaveProperty('rule')
         })
       })
-    })
-  })
-
-  describe('given invalid data', () => {
-    const invalidData = [2, 'data', [], null, undefined]
-
-    invalidData.forEach((data) => {
-      const dataType = Object.prototype.toString.call(data)
-
-      describe(`given ${dataType} as data`, () => {
-        const validate = () => useSchema({}, data)
-
-        it('should throw error about invalid data', () => {
-          expect(validate).toThrow(
-            `Invalid data: expected actual data to be an Object, but got ${dataType}`,
-          )
-        })
-      })
-    })
-  })
-
-  describe('given schema with invalid resolver', () => {
-    const validate = () =>
-      useSchema(
-        {
-          // @ts-ignore
-          lastName: 5,
-        },
-        {},
-      )
-
-    it('should throw an error about invalid resolver', () => {
-      expect(validate).toThrow(
-        `Invalid schema at "lastName": expected resolver to be a function, but got number.`,
-      )
-    })
-  })
-
-  describe('given schema with invalid named rule', () => {
-    const validate = () =>
-      useSchema(
-        {
-          // @ts-ignore
-          firstName: (value) => ({
-            minLength: 2,
-          }),
-        },
-        { firstName: 'John' },
-      )
-
-    it('should throw an error about invalid named resolver', () => {
-      expect(validate).toThrow(
-        'Invalid schema at "firstName.minLength": expected named resolver to be a boolean, but got number.',
-      )
     })
   })
 })

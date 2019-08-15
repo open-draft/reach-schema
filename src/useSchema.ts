@@ -22,9 +22,9 @@ export enum ErrorStatus {
 
 export interface ValidationError {
   pointer: Pointer
-  value: any
   status: ErrorStatus
-  rule: string
+  value?: any
+  rule?: string
 }
 
 /**
@@ -127,17 +127,25 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
 
 function createValidationError(
   pointer: Pointer,
-  value: any = null,
-  rule: string = null,
+  value?: any,
+  rule?: string,
 ): ValidationError {
   const status = !!value ? ErrorStatus.invalid : ErrorStatus.missing
 
-  return {
+  const error: ValidationError = {
     pointer,
-    value,
     status,
-    rule,
   }
+
+  if (value) {
+    error.value = value
+  }
+
+  if (rule) {
+    error.rule = rule
+  }
+
+  return error
 }
 
 /**
