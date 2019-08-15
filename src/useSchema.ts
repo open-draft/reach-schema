@@ -1,3 +1,4 @@
+import invariant from './utils/invariant'
 import getNestedProperty from './utils/getNestedProperty'
 
 interface Schema {
@@ -30,9 +31,21 @@ export interface ValidationError {
  * Applies a validation schema to the given Object.
  * Returns validation result.
  */
-function useSchema(schema: Schema, obj: Object) {
+function useSchema(schema: Schema, data: Object) {
+  const schemaType = Object.prototype.toString.call(schema)
+  invariant(
+    schemaType.includes('Object'),
+    `Invalid schema: expected schema to be an Object, but got ${schemaType}.`,
+  )
+
+  const dataType = Object.prototype.toString.call(data)
+  invariant(
+    dataType.includes('Object'),
+    `Invalid data: expected actual data to be an Object, but got ${dataType}.`,
+  )
+
   return {
-    errors: getErrorsBySchema(schema, obj, []),
+    errors: getErrorsBySchema(schema, data, []),
   }
 }
 
@@ -58,15 +71,25 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
     const [predicate, resolver] = Array.isArray(resolverPayload)
       ? resolverPayload
       : [() => true, resolverPayload]
+    const resolverType = typeof resolver
     const shouldValidate = predicate(value, key, currentPointer, data, schema)
 
     if (!shouldValidate) {
       return errors
     }
 
-    if (typeof resolver === 'object') {
+    if (resolverType === 'object') {
+      // Recursive case.
+      // An Object resolver value is treated as a nested validation schema.
       return errors.concat(getErrorsBySchema(resolver, value, currentPointer))
     }
+
+    invariant(
+      resolverType === 'function',
+      `Invalid schema at "${currentPointer.join(
+        '.',
+      )}": expected resolver to be a function, but got ${resolverType}.`,
+    )
 
     const resolverVerdict = resolver(value, currentPointer)
 
@@ -75,7 +98,20 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
       const namedErrors = Object.keys(resolverVerdict)
         // Note that named resolvers keep a boolean value,
         // not the verdict function. Therefore, no calls.
-        .filter((rule) => !resolverVerdict[rule])
+        .filter((ruleName) => {
+          const ruleVerdict = resolverVerdict[ruleName]
+
+          invariant(
+            typeof ruleVerdict === 'boolean',
+            `Invalid schema at "${currentPointer
+              .concat(ruleName)
+              .join(
+                '.',
+              )}": expected named resolver to be a boolean, but got ${typeof ruleVerdict}.`,
+          )
+
+          return !ruleVerdict
+        })
         .reduce((acc, rule) => {
           return acc.concat(createValidationError(currentPointer, value, rule))
         }, [])
