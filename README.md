@@ -24,7 +24,7 @@ All these criteria can be summarized as: _validation should be functional_. Func
 
 ## Validation schema
 
-Object validation happens based on the given schema. A validation schema is an Object where each key represents a _required property_ in the data Object. Key value may be one of the following:
+Object validation happens based on the given schema. A validation schema is an Object where each key represents such property in the actual data Object. A value of the key may be one of the following:
 
 1. Resolver function that returns a validity of a data value.
 1. Nested schema Object.
@@ -33,7 +33,7 @@ Applying a schema returns the list of validation errors.
 
 ## Errors
 
-Each validation error is of the following shape:
+Each validation error has this structure:
 
 ```ts
 interface Error {
@@ -62,7 +62,7 @@ interface Error {
 
 #### Basic example
 
-Each property in a schema corresponds to such property in the data Object. Each schema value is a _resolver_ function that accepts an actual data value and returns a `Boolean` verdict.
+Each key in a schema corresponds to such property in the actual data Object. Each schema value is a _resolver_ function that accepts an actual data value and returns a `Boolean` verdict.
 
 ```js
 import { useSchema } from 'reach-schema'
