@@ -37,20 +37,22 @@ Each validation error is of the following shape:
 
 ```ts
 interface Error {
+  // Pointer to the related property in the actual Object.
+  pointer: string[]
+
   // Field that doesn't match a schema may be in
   // one of the two possible stats:
   // - missing. Expected, but not present in the data.
   // - invalid. Present in both, but not matching the resolver.
   status: 'missing' | 'invalid'
 
-  // Pointer to the related value.
-  pointer: string[]
+  // (Optional) The actual value of the validated property
+  // Present if a property has value.
+  value?: any
 
-  // The actual value of the validated property
-  value: any
-
-  // Rule name, in case of rejecting named resolver.
-  rule: string | null
+  // (Optional) Rule name, in case of rejecting named resolver.
+  // Present if given a named resolver.
+  rule?: string
 }
 ```
 
@@ -82,15 +84,12 @@ useSchema(
 [
   {
     "pointer": ["lastName"],
-    "status": "missing",
-    "value": null,
-    "rule": null
+    "status": "missing"
   },
   {
     "pointer": ["age"],
     "status": "invalid",
-    "value": 16,
-    "rule": null
+    "value": 16
   }
 ]
 ```
@@ -121,8 +120,7 @@ useSchema(
   {
     "pointer": ["billingData", "country"],
     "status": "invalid",
-    "value": "US",
-    "rule": null
+    "value": "US"
   }
 ]
 ```
@@ -221,8 +219,7 @@ useSchema(
   {
     "pointer": ["billingData", "address"],
     "status": "invalid",
-    "value": "Invalid address",
-    "rule": null
+    "value": "Invalid address"
   }
 ]
 ```
