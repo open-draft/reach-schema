@@ -71,7 +71,7 @@ useSchema(
   {
     firstName: (value) => value === 'john',
     lastName: (value) => value === 'locke',
-    age: (value) => age > 18,
+    age: (value) => value > 18,
   },
   {
     firstName: 'john',
