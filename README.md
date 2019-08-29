@@ -16,9 +16,9 @@ Look up any Object validation library in JavaScript. You are going to find a cla
 **How I see Object validation instead:**
 
 1. Validation result is a function from schema and data.
-1. Validation is not concerned with any logic around error messages.
+1. Validation is not coupled with the error messages logic.
 
-All these criteria can be summarized as: _validation should be functional_. Functional composition gives you flexibility and power than no class abstractions could ever match.
+In short, _validation should be functional_. Functional composition gives you flexibility and power than no class abstractions could ever match.
 
 > It's recommended to use this library alongside any functional utilities library (i.e. [lodash](https://lodash.com/), [ramda](https://ramdajs.com/)). They can save you a lot of time on writing custom resolvers.
 
@@ -193,7 +193,7 @@ useSchema(
 
 ### Optional properties
 
-Optional, or _week_ validation, is the one applied only when the mentioned property is present in the actual data. This marks such property as optional, but still applies a provided structure or resolver(s) when the property is present.
+Optional (_weak_) validation is applied only when the mentioned property is present in the actual data. This marks such property as optional, but still applies a validation resolver when the property is provided.
 
 ```js
 import { useSchema, optional } from 'reach-schema'
@@ -209,6 +209,7 @@ useSchema(
   {
     billingData: {
       address: 'Invalid address',
+      firstName: 'J'
     },
   },
 )
@@ -220,8 +221,13 @@ useSchema(
     "pointer": ["billingData", "address"],
     "status": "invalid",
     "value": "Invalid address"
+  },
+  {
+    "pointer": ["billingData", "firstName"],
+    "status": "invalid",
+    "value": "J"
   }
 ]
 ```
 
-> Note that `firstName` and `billingAddress.firstName` are missing in the actual data, but that produces no errors, because both properties are optional.
+> Note that root-level `firstName` property is missing in the actual data, but that is not considered invalid, as the property is marked as `optional`.
