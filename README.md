@@ -7,51 +7,69 @@
 <br />
 
 <h1 align="center">Reach Schema</h1>
-<p align="center">Functional schema-driven JavaScript object validation.</p>
+<p align="center">Functional schema-driven JavaScript object validation library.</p>
 
 ## Motivation
 
-Look up any Object validation library in JavaScript. You are going to find a class-bloated rigid abstraction that handles complexity by introducing even more complexity.
+If you are to look up any Object validation library in JavaScript you would find a class-bloated rigid abstraction that handles complexity by introducing even more complexity. I believe that doesn't have to be that way.
 
-**How I see Object validation instead:**
+**This is how I envision Object validation:**
 
 1. Validation result is a function from schema and data.
-1. Validation is not coupled with the error messages logic.
+1. Validation result is not coupled with the error messages logic.
 
-In short, _validation should be functional_. Functional composition gives you flexibility and power than no class abstractions could ever match.
+In other words, _validation should be functional_. Functional composition gives you flexibility and power than no class abstractions can match.
 
-> It's recommended to use this library alongside any functional utilities library (i.e. [lodash](https://lodash.com/), [ramda](https://ramdajs.com/)). They can save you a lot of time on writing custom resolvers.
+> Reach Schema can be used alongside other functional libraries (i.e. [lodash](https://lodash.com/), [ramda](https://ramdajs.com/)). They can be useful when writing validation resolvers or composing a validation schema.
 
 ## Validation schema
 
-Object validation happens based on the given schema. A validation schema is an Object where each key represents such property in the actual data Object. A value of the key may be one of the following:
+Object validation happens based on the validation schema.
 
-1. Resolver function that returns a validity of a data value.
-1. Nested schema Object.
+```ts
+interface Schema {
+  [field: string]: Resolver | NamedResolver | Schema
+}
 
-Applying a schema returns the list of validation errors.
+// A plain resolver function that returns a boolean verdict.
+interface Resolver<ValueType> {
+  (value: ValueType): boolean
+}
+
+// A named resolver function that returns a Record of rules.
+interface NamedResolver<ValueType> {
+  (value: ValueType): {
+    [ruleName: string]: boolean
+  }
+}
+```
+
+Applying a validation schema to the actual data returns the validation result.
+
+```ts
+interface ValidationResult {
+  errors: Error[]
+}
+```
 
 ## Errors
 
-Each validation error has this structure:
+Each validation error has the following structure:
 
 ```ts
 interface Error {
-  // Pointer to the related property in the actual Object.
+  // Pointer to the related property in the actual data.
   pointer: string[]
 
-  // Field that doesn't match a schema may be in
-  // one of the two possible stats:
-  // - missing. Expected, but not present in the data.
-  // - invalid. Present in both, but not matching the resolver.
+  // A property's validation state.
+  // - "missing". Expected, but not present in the actual data.
+  // - "invalid". Present, but doesn't satisfy the validation resolver.
   status: 'missing' | 'invalid'
 
-  // (Optional) The actual value of the validated property
-  // Present if a property has value.
+  // A property's value, if present in the actual data.
   value?: any
 
-  // (Optional) Rule name, in case of rejecting named resolver.
-  // Present if given a named resolver.
+  // Name of the rejected validation rule, if applicable.
   rule?: string
 }
 ```
@@ -165,7 +183,7 @@ useSchema(
 
 ## Error messages
 
-Validation logic is decoupled from error messages for a number of reasons:
+Validation logic is decoupled from the error messages for a number of reasons:
 
 1. **Separation of concerns**. Think of validation logic as a business logic and error messages as a view layer. Those are usually kept separated to have each do its own job and do it well.
 1. **Dynamic messages**. Error messages are often consumed by a client and are localized or context-dependent. If separated from the validation logic, they can be derived from the validation errors depending on a locale, or any other condition.
@@ -209,7 +227,7 @@ useSchema(
   {
     billingData: {
       address: 'Invalid address',
-      firstName: 'J'
+      firstName: 'J',
     },
   },
 )
