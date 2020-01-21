@@ -11,20 +11,18 @@
 
 ## Motivation
 
-If you are to look up any Object validation library in JavaScript you would find a class-bloated rigid abstraction that handles complexity by introducing even more complexity. I believe that doesn't have to be that way.
+It happens that JavaScript Object validation libraries are often class-based and operate using via a chain of operators. With Reach Schema I would like to take an alternative approach, making validation functional.
 
-**This is how I envision Object validation:**
+**Main concepts of React Schema:**
 
 1. Validation result is a function from schema and data.
 1. Validation result is not coupled with the error messages logic.
 
-In other words, _validation should be functional_. Functional composition gives you flexibility and power than no class abstractions can match.
-
-> Reach Schema can be used alongside other functional libraries (i.e. [lodash](https://lodash.com/), [ramda](https://ramdajs.com/)). They can be useful when writing validation resolvers or composing a validation schema.
+> Reach Schema works great together with functional programming libraries like [lodash](https://lodash.com/) or [ramda](https://ramdajs.com/). They allow to make validation declaration shorter and make your life easier. Consider those.
 
 ## Validation schema
 
-Object validation happens based on the validation schema.
+Data validity is described using a _validation schema_. It's a plain Object which keys represent the actual data keys hierarhcy, and values equal to _resolver functions_ that return the validation verdict.
 
 ```ts
 interface Schema {
@@ -80,7 +78,7 @@ interface Error {
 
 #### Basic example
 
-Each key in a schema corresponds to such property in the actual data Object. Each schema value is a _resolver_ function that accepts an actual data value and returns a `Boolean` verdict.
+Each key in a schema corresponds to same property in the actual data. Each schema value is a _resolver_ function that accepts an actual data value and returns a `Boolean` verdict.
 
 ```js
 import { useSchema } from 'reach-schema'
@@ -145,7 +143,7 @@ useSchema(
 
 #### Multiple criteria
 
-A resolver function may also return a `Record<string, boolean>` that describes multiple validation rules applied to a single property. The value must satisfy all the rules to be valid. Each resolver corresponding to a validation criteria is called _named resolver_.
+A resolver function may also return a map of rules that apply to the corresponding nested properties. By default, the actual value must satisfy all the rules in order to be valid (**see [Optional validation](#optional-validation)**). Each resolver corresponding to a validation criteria is called _named resolver_.
 
 ```js
 import { useSchema } from 'reach-schema'
@@ -183,16 +181,15 @@ useSchema(
 
 ## Error messages
 
-Validation logic is decoupled from the error messages for a number of reasons:
+Reach Schema does not provide any error messages directly. Instead, it treats an error message as an artifact derived from the validation result. To achieve that it provides all the relevant information in the validation result to construct an error message.
 
-1. **Separation of concerns**. Think of validation logic as a business logic and error messages as a view layer. Those are usually kept separated to have each do its own job and do it well.
-1. **Dynamic messages**. Error messages are often consumed by a client and are localized or context-dependent. If separated from the validation logic, they can be derived from the validation errors depending on a locale, or any other condition.
+However, there is a common logic that can be integrated into such error messages construction (i.e. resolving due to priority, fallback messages). Declaring such logic each time would be lengthy, time-consuming, and prone to human error.
 
 ## Recipes
 
 ### Property existence
 
-To check that a property exists in the data Object provide it in the validation schema and make its resolver always return `true`.
+To check that a property exists in the actual data provide a resolver function that always returns `true`. Ideologically it marks the property as "always valid", but since the default validation behavior asserts all the keys present in the Validation Schema, it also implies that the property must be present.
 
 ```js
 import { useSchema } from 'reach-schema'
@@ -209,9 +206,9 @@ useSchema(
 )
 ```
 
-### Optional properties
+### Optional validation
 
-Optional (_weak_) validation is applied only when the mentioned property is present in the actual data. This marks such property as optional, but still applies a validation resolver when the property is provided.
+To apply an optional (_weak_) validation to a property wrap its resolver in the `optional` helper function. This way the property's value will be validated only if present in the actual data. If the property is missing in the actual data it's never validated and considered as valid.
 
 ```js
 import { useSchema, optional } from 'reach-schema'
@@ -247,5 +244,3 @@ useSchema(
   }
 ]
 ```
-
-> Note that root-level `firstName` property is missing in the actual data, but that is not considered invalid, as the property is marked as `optional`.
