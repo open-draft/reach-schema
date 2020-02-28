@@ -1,1 +1,1 @@
-export { default as useSchema } from './useSchema'
+export { default as useSchema, optional } from './useSchema'
