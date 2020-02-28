@@ -1,7 +1,0 @@
-.rpt2_*
-jest.*
-babel.*
-tsconfig.*
-.prettierrc
-internals
-src
