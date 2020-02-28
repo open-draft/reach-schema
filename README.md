@@ -50,6 +50,63 @@ interface ValidationResult {
 }
 ```
 
+## Resolver
+
+_Resolver_ is a function that determines a value's validity. A simple resolver accepts a value and returns a boolean verdict. Reach Schema supports more complex resolvers, such as _grouped resolver_, which allows to provide multiple independent criteria to a single value.
+
+### Basic resolver
+
+```js
+useSchema(
+  {
+    firstName: (value, pointer) => value === 'John',
+  },
+  {
+    firstName: 'Jessica',
+  },
+)
+```
+
+### Grouped resolver
+
+```js
+useSchema(
+  {
+    password: (value, pointer) => ({
+      minLength: value.length > 7,
+      capitalLetter: /[A-Z]/.test(value),
+      oneNumber: /[0-9]/.test(value),
+    }),
+  },
+  {
+    password: 'IshallPass8',
+  },
+)
+```
+
+### Nested schema
+
+Resolver may also return an Object, if validating an Object type value, which would be treated as a nested [Validation schema](#validation-schema).
+
+```js
+useSchema(
+  {
+    billingDetails: {
+      // Nested schema accepts all kinds of resolvers:
+      // basic, grouped, and deeply nested schema.
+      address: (value) => checkAddressExistance(value),
+      zipCode: (value) => /\d{5}/.test(zipCode),
+    },
+  },
+  {
+    billingDetails: {
+      address: 'Sunwell Ave.',
+      zipCode: 56200,
+    },
+  },
+)
+```
+
 ## Errors
 
 Each validation error has the following structure:
@@ -87,7 +144,7 @@ useSchema(
   {
     firstName: (value) => value === 'john',
     lastName: (value) => value === 'locke',
-    age: (value) => value > 18,
+    age: (value) => value > 17,
   },
   {
     firstName: 'john',
@@ -243,4 +300,29 @@ useSchema(
     "value": "J"
   }
 ]
+```
+
+### Usage with TypeScript
+
+`useSchema` will infer the type of the given data automatically. However, to type guard the data itself it's useful to describe the data separately and provide to schema:
+
+```ts
+interface UserDetails {
+  firstName: string
+  lastName: string
+  age: number
+}
+
+useSchema<UserDetails>(
+  {
+    firstName: (value) => value.length > 2,
+    lastName: (value) => value.length > 2,
+    age: (value) => value > 17,
+  },
+  {
+    firstName: 'John',
+    lastName: 'Maverick',
+    age: 31,
+  },
+)
 ```
