@@ -1,19 +1,36 @@
 import invariant from './utils/invariant'
 import getNestedProperty from './utils/getNestedProperty'
 
-interface Schema {
-  [key: string]: SchemaValue
+type UnknownData = Record<string, any>
+
+export type Schema<DataType = UnknownData> = {
+  [K in keyof DataType]?: ResolverOrNestedSchema<DataType[K], DataType>
 }
 
-type SchemaValue = ResolversGroup | Resolver | Schema
+type ResolverPredicate<ValueType, DataType> = (
+  value: ValueType,
+  key: string,
+  pointer: Pointer,
+  data: DataType,
+  schema: Schema<ValueType>,
+) => boolean
+
+type ConditionalResolver<ValueType, DataType> = [
+  ResolverPredicate<ValueType, DataType>,
+  Resolver<ValueType>,
+]
+
+type ResolverOrNestedSchema<ValueType, DataType> =
+  | Schema<ValueType>
+  | ConditionalResolver<ValueType, DataType>
+  | Resolver<ValueType>
+
+type Resolver<ValueType> = (
+  value: ValueType,
+  pointer: Pointer,
+) => Record<string, boolean> | boolean
 
 type Pointer = string[]
-
-interface Resolver {
-  (value: any, pointer: Pointer): Record<string, boolean> | boolean
-}
-
-type ResolversGroup = Record<string, Resolver>
 
 export enum ErrorStatus {
   missing = 'missing',
@@ -28,10 +45,12 @@ export interface ValidationError {
 }
 
 /**
- * Applies a validation schema to the given Object.
- * Returns validation result.
+ * Validates data against the given schema.
  */
-function useSchema(schema: Schema, data: Object) {
+export const useSchema = <Data extends Record<string, any> = any>(
+  schema: Schema<Data>,
+  data: Data,
+) => {
   const schemaType = Object.prototype.toString.call(schema)
   invariant(
     schemaType.includes('Object'),
@@ -45,55 +64,63 @@ function useSchema(schema: Schema, data: Object) {
   )
 
   return {
-    errors: getErrorsBySchema(schema, data, []),
+    errors: getErrorsBySchema<Data>(schema, data, []),
   }
 }
 
 /**
- * Recursively produces the list of validation errors
+ * Recursively produces a list of validation errors
  * based on the given schema and data.
  */
-function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
+function getErrorsBySchema<Data>(
+  schema: Schema<Data>,
+  data: Data,
+  pointer: Pointer,
+) {
   return Object.keys(schema).reduce<ValidationError[]>((errors, key) => {
     const currentPointer = pointer.concat(key)
 
-    // Handle values that are expected by schema, but not defined in data.
+    // Handle values that are expected by schema, but not defined in the data
     if (data == null) {
       return errors.concat(createValidationError(currentPointer, data))
     }
 
     const value = data[key]
-    const resolverPayload = schema[key]
+    const resolverPayload: ResolverOrNestedSchema<typeof value, Data> =
+      schema[key]
 
     // When a resolver function returns an Array,
     // treat the first argument as a predicate that determines if validation is necessary.
     // Threat the second argument as the resolver function.
+    /**
+     * @todo Fix type annotations.
+     */
     const [predicate, resolver] = Array.isArray(resolverPayload)
       ? resolverPayload
       : [() => true, resolverPayload]
-    const resolverType = typeof resolver
-    const shouldValidate = predicate(value, key, currentPointer, data, schema)
 
-    if (!shouldValidate) {
+    if (!predicate(value, key, currentPointer, data, schema)) {
       return errors
     }
 
-    if (resolverType === 'object') {
+    if (typeof resolver === 'object') {
       // Recursive case.
       // An Object resolver value is treated as a nested validation schema.
-      return errors.concat(getErrorsBySchema(resolver, value, currentPointer))
+      return errors.concat(
+        getErrorsBySchema(resolver as Schema, value, currentPointer),
+      )
     }
 
     invariant(
-      resolverType === 'function',
+      typeof resolver === 'function',
       `Invalid schema at "${currentPointer.join(
         '.',
-      )}": expected resolver to be a function, but got ${resolverType}.`,
+      )}": expected resolver to be a function, but got ${typeof resolver}.`,
     )
 
     const resolverVerdict = resolver(value, currentPointer)
 
-    // If resolver returns an Object, treat it as named rules map.
+    // If resolver returns an Object, treat it as named rules map
     if (typeof resolverVerdict === 'object') {
       const namedErrors = Object.keys(resolverVerdict)
         // Note that named resolvers keep a boolean value,
@@ -112,7 +139,7 @@ function getErrorsBySchema(schema: Schema, data: Object, pointer: Pointer) {
 
           return !ruleVerdict
         })
-        .reduce((acc, rule) => {
+        .reduce<ValidationError[]>((acc, rule) => {
           return acc.concat(createValidationError(currentPointer, value, rule))
         }, [])
       return errors.concat(namedErrors)
@@ -152,13 +179,13 @@ function createValidationError(
  * High-order resolver that applies a given resolver function
  * only when the associated property is present in the actual data.
  */
-export const optional = (payload: SchemaValue) => {
+export const optional = <ValueType, DataType>(
+  resolver: Resolver<ValueType>,
+): ConditionalResolver<ValueType, DataType> => {
   return [
     (value, key, pointer, data, schema) => {
       return getNestedProperty(pointer, data) != null
     },
-    payload,
+    resolver,
   ]
 }
-
-export default useSchema

@@ -1,4 +1,11 @@
-import useSchema from './useSchema'
+import { useSchema } from './useSchema'
+
+/**
+ * @todo Tests fail:
+ * src/useSchema.ts:7:23 - error TS2315: Type 'ResolverOrNestedSchema' is not generic.
+ *
+ * And a bunch of similar "not generic" errors.
+ */
 
 describe('useSchema: Input validation', () => {
   describe('given invalid schema', () => {
@@ -26,7 +33,7 @@ describe('useSchema: Input validation', () => {
       const dataType = Object.prototype.toString.call(data)
 
       describe(`given ${dataType} as data`, () => {
-        const validate = () => useSchema({}, data)
+        const validate = () => useSchema({}, data as any)
 
         it('should throw error about invalid data', () => {
           expect(validate).toThrow(

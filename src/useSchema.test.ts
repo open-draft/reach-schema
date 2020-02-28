@@ -1,12 +1,12 @@
-import useSchema, { optional } from './useSchema'
+import { Schema, useSchema, optional } from './useSchema'
 
-const withSchema = (schema) => (data) => {
-  return useSchema(schema, data)
+const withSchema = <Data>(schema: Schema<Data>) => (data: Data) => {
+  return useSchema<Data>(schema, data)
 }
 
 describe('useSchema', () => {
   describe('given one-line resolver', () => {
-    const withData = withSchema({
+    const withData = withSchema<{ firstName?: string; lastName?: string }>({
       firstName: (value) => value === 'john',
     })
 
@@ -81,7 +81,7 @@ describe('useSchema', () => {
   })
 
   describe('given a resolver with 3 named rules', () => {
-    const withData = withSchema({
+    const withData = withSchema<{ password: string }>({
       password: (value) => ({
         minLength: value.length > 5,
         capitalLetter: /[A-Z]/.test(value),
@@ -176,7 +176,13 @@ describe('useSchema', () => {
   })
 
   describe('given schema with nested properties', () => {
-    const withData = withSchema({
+    const withData = withSchema<{
+      firstName?: string
+      billingDetails?: {
+        city?: string
+        country?: string
+      }
+    }>({
       billingDetails: {
         country: (value) => ['uk', 'us'].includes(value),
       },
@@ -294,12 +300,12 @@ describe('useSchema', () => {
   })
 
   describe('given schema with an optional property', () => {
-    const withData = withSchema({
+    const withData = withSchema<{ firstName: string }>({
       firstName: optional((value) => value.length > 1),
     })
 
     describe('and an optional property is missing', () => {
-      const result = withData({})
+      const result = withData({} as any)
 
       it('should not return errors', () => {
         expect(result).toHaveProperty('errors')
@@ -351,14 +357,19 @@ describe('useSchema', () => {
   })
 
   describe('given schema with an optional property that includes required keys', () => {
-    const withData = withSchema({
+    const withData = withSchema<{
+      billingDetails: {
+        firstName?: string
+        country?: string
+      }
+    }>({
       billingDetails: optional({
         country: (value) => ['uk', 'us'].includes(value),
       }),
     })
 
     describe('and optional property is missing', () => {
-      const result = withData({})
+      const result = withData({} as any)
 
       it('should not return errors', () => {
         expect(result).toHaveProperty('errors', [])
