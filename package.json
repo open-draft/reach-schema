@@ -5,6 +5,7 @@
   "main": "lib/cjs.js",
   "module": "lib/esm.js",
   "umd:main": "lib/umd.js",
+  "typings": "lib/index.d.ts",
   "license": "MIT",
   "scripts": {
     "test": "jest",
